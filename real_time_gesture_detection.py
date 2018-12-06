@@ -14,14 +14,23 @@ def predict_rgb_image(img):
 	return (result)
 
 from keras.models import load_model
-model = load_model('/Users/brenner/project_kojak/drawing_VGG.h5')
+model = load_model('/Users/brenner/project_kojak/models/new_new_new.h5')
+# model = load_model('/Users/brenner/project_kojak/models/vgg_new_model.h5')
+# model = load_model('/Users/brenner/project_kojak/drawing_VGG.h5')
+# model = load_model('/Users/brenner/project_kojak/models/best_model')
 
-gesture_names = {0: 'C',
-				 1: 'Fist',
-				 2: 'L',
-				 3: 'Okay',
-				 4: 'Palm',
-				 5: 'Peace'}
+# gesture_names = {0: 'C',`
+# 				 1: 'Fist',
+# 				 2: 'L',
+# 				 3: 'Okay',
+# 				 4: 'Palm',
+# 				 5: 'Peace'}
+
+gesture_names = {0: 'Fist',
+				 1: 'L',
+				 2: 'Okay',
+				 3: 'Palm',
+				 4: 'Peace'}
 
 def predict_rgb_image_vgg(img):
 	# img2rgb = image_utils.load_img(path=path, target_size=(224, 224))
@@ -47,9 +56,9 @@ threshold = 60  #  BINARY threshold
 blurValue = 41  # GaussianBlur parameter
 bgSubThreshold = 50
 learningRate = 0
-img_counter = 134
+img_counter = 170
 
-# variables
+# variableslt
 isBgCaptured = 0   # bool, whether the background captured
 triggerSwitch = False  # if true, keyborad simulator works
 
@@ -171,10 +180,11 @@ while camera.isOpened():
 	elif k == 32:
 		# SPACE pressed
 
-		# img_name = f"/Users/brenner/project_kojak/misc/palm_{img_counter}.jpg".format(img_counter)
-		# cv2.imwrite(img_name, thresh)
+		# img_name = f"/Users/brenner/project_kojak/frames/drawings/drawing_peace_{img_counter}.jpg".format(img_counter)
+		# cv2.imwrite(img_name, drawing)
 		# print("{} written!".format(img_name))
-		# print(type(thresh))
+		# img_counter +=1
+		# # print(type(thresh))
 
 
 		drawing = cv2.resize(drawing, (224, 224))
@@ -182,7 +192,6 @@ while camera.isOpened():
 		prediction = predict_rgb_image_vgg(drawing)
 
 
-		print('Text printed.')
 
 		# if prediction:
 		# 	cv2.putText(frame, 'detected:', (50, 50), self.font, 0.8, (0, 0, 0), 2)
