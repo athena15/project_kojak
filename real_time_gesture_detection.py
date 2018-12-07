@@ -6,7 +6,7 @@ import datetime
 
 from keras.preprocessing import image as image_utils
 
-prediction = str(0)
+prediction = ''
 
 def predict_rgb_image(img):
 	result = gesture_names[model.predict_classes(img)[0]]
@@ -14,23 +14,23 @@ def predict_rgb_image(img):
 	return (result)
 
 from keras.models import load_model
-model = load_model('/Users/brenner/project_kojak/models/new_new_new.h5')
+# model = load_model('/Users/brenner/project_kojak/models/new_new_new.h5')
 # model = load_model('/Users/brenner/project_kojak/models/vgg_new_model.h5')
-# model = load_model('/Users/brenner/project_kojak/drawing_VGG.h5')
+model = load_model('/Users/brenner/project_kojak/drawing_VGG.h5')
 # model = load_model('/Users/brenner/project_kojak/models/best_model')
 
-# gesture_names = {0: 'C',`
-# 				 1: 'Fist',
-# 				 2: 'L',
-# 				 3: 'Okay',
-# 				 4: 'Palm',
-# 				 5: 'Peace'}
+gesture_names = {0: 'C',
+				 1: 'Fist',
+				 2: 'L',
+				 3: 'Okay',
+				 4: 'Palm',
+				 5: 'Peace'}
 
-gesture_names = {0: 'Fist',
-				 1: 'L',
-				 2: 'Okay',
-				 3: 'Palm',
-				 4: 'Peace'}
+# gesture_names = {0: 'Fist',
+# 				 1: 'L',
+# 				 2: 'Okay',
+# 				 3: 'Palm',
+# 				 4: 'Peace'}
 
 def predict_rgb_image_vgg(img):
 	# img2rgb = image_utils.load_img(path=path, target_size=(224, 224))
@@ -77,8 +77,7 @@ def removeBG(frame):
 	return res
 
 
-def calculateFingers(res,drawing):  # -> finished bool, cnt: finger count
-	#  convexity defect
+def calculateFingers(res,drawing):
 	hull = cv2.convexHull(res, returnPoints=False)
 	if len(hull) > 3:
 		defects = cv2.convexityDefects(res, hull)
@@ -116,7 +115,9 @@ while camera.isOpened():
 	cv2.rectangle(frame, (int(cap_region_x_begin * frame.shape[1]), 0),
 				 (frame.shape[1], int(cap_region_y_end * frame.shape[0])), (255, 0, 0), 2)
 	cv2.putText(frame, f"Prediction: {prediction}" , (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0))  # Draw the text
+	cv2.resize(frame, (800, 600))
 	cv2.imshow('original', frame)
+
 
 	#  Main operation
 	if isBgCaptured == 1:  # this part wont run until background captured
@@ -130,9 +131,10 @@ while camera.isOpened():
 		blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
 		# cv2.imshow('blur', blur)
 		# ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
-		ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU) #Remove cv2.THRESH_OTSU if needed
+		ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
 		cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY
+
 		cv2.imshow('ori', thresh)
 
 
