@@ -14,6 +14,7 @@ action = ''
 img_counter = 9999
 selected_gesture = 'peace'
 save_images = False
+smart_home = False
 
 # Smart Home Settings
 b = Bridge('192.168.0.103')
@@ -204,26 +205,30 @@ while camera.isOpened():
 		target = target.reshape(1, 224, 224, 3)
 		prediction, score = predict_rgb_image_vgg(target)
 
-		if prediction == 'Palm':
-			action = "Lights on, music on"
-			b.set_light(6, on_command)
-			sonos.play()
+		if smart_home:
+			if prediction == 'Palm':
+				action = "Lights on, music on"
+				b.set_light(6, on_command)
+				sonos.play()
 
-		elif prediction ==  'Fist':
-			action = 'Lights off, music off'
-			b.set_light(6, off_command)
-			sonos.pause()
+			elif prediction == 'Fist':
+				action = 'Lights off, music off'
+				b.set_light(6, off_command)
+				sonos.pause()
 
-		elif prediction == 'L':
-			action = 'Volume down'
-			sonos.volume -= 15
+			elif prediction == 'L':
+				action = 'Volume down'
+				sonos.volume -= 15
 
-		elif prediction == 'Okay':
-			action = 'Volume up'
-			sonos.volume += 15
+			elif prediction == 'Okay':
+				action = 'Volume up'
+				sonos.volume += 15
 
-		else:
-			pass
+			elif prediction == 'Peace':
+				action = ''
+
+			else:
+				pass
 
 		if save_images:
 			img_name = f"/Users/brenner/project_kojak/frames/drawings/drawing_{selected_gesture}_{img_counter}.jpg".format(img_counter)
