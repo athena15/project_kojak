@@ -93,4 +93,22 @@ target = target.reshape(1, 224, 224, 3)
 prediction, score = predict_image(target)
 ```
 
-Getting the pipeline connected between the webcam and my model was a big success. I started to think about what would be the ideal image to feed in to my model. One clear obstacle was that it's difficult to separate the area of interest (in our case, a hand) from the background. The approach that I took was one that is familiar to anyone who has played around with Photoshop at all - background subtraction. It's a beautiful thing! In essence, if you take a photo of a scene before your hand is in it, you can create a "mask" that will remove everything in the image except the new object.
+Getting the pipeline connected between the webcam and my model was a big success. I started to think about what would be the ideal image to feed in to my model. One clear obstacle was that it's difficult to separate the area of interest (in our case, a hand) from the background.
+
+#### Extracting the gesture
+
+The approach that I took was one that is familiar to anyone who has played around with Photoshop at all - background subtraction. It's a beautiful thing! In essence, if you take a photo of a scene before your hand is in it, you can create a "mask" that will remove everything in the image except the new object.
+
+Once I had subtracted the background from my images, I then used binary thresholding to make the target gesture totally white, and the background totally black. I chose this approach for two reasons: it made the outline of the hand crisp and clear, and it made the model easier to generalize across users with different skin colors. This created the telltale "silhouette"-like photos that I ultimately trained my model on.
+
+#### Building a new dataset
+
+Now that I could accurately detect my hand in images, I decided to try something new. My old model didn't generalize well, and my ultimate goal was to build a model that could recognize my gestures in real time - so I decided to build my own dataset!
+
+I chose to focus on 5 gestures:
+
+![5 hand gestures](Background Masking.jpg)From here, I built a dataset by setting up my webcam, and creating a click binding in OpenCV to capture and save images with unique filenames. In no time, I had built a dataset with 550 silhouette images each.
+
+#### Training the new model
+
+I then built a convolutional neural network using Keras & TensorFlow. In order to cross-validate my model, I decided to see whether my trained model could also accurately predict images from the Kaggle data set. In order to do this, I applied the same transformations to each Kaggle image that I had applied to my training data - background subtraction and binary thresholding. This gave them a similar "look" that my model was familiar with.
