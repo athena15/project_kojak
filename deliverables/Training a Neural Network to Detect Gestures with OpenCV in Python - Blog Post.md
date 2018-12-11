@@ -107,8 +107,71 @@ Now that I could accurately detect my hand in images, I decided to try something
 
 I chose to focus on 5 gestures:
 
-![5 hand gestures](Background Masking.jpg)From here, I built a dataset by setting up my webcam, and creating a click binding in OpenCV to capture and save images with unique filenames. In no time, I had built a dataset with 550 silhouette images each.
+![5 hand gestures](Background Masking.jpg)
+
+I strategically chose 4 gestures that were also included in the Kaggle data set, so I could cross-validate my model against those images later. I also added the peace sign, although that gesture did not have an analogue in the Kaggle data set.
+
+From here, I built a dataset by setting up my webcam, and creating a click binding in OpenCV to capture and save images with unique filenames. In no time, I had built a dataset with 550 silhouette images each.
 
 #### Training the new model
 
-I then built a convolutional neural network using Keras & TensorFlow. In order to cross-validate my model, I decided to see whether my trained model could also accurately predict images from the Kaggle data set. In order to do this, I applied the same transformations to each Kaggle image that I had applied to my training data - background subtraction and binary thresholding. This gave them a similar "look" that my model was familiar with.
+I then built a convolutional neural network using Keras & TensorFlow. In order to cross-validate my model, I decided to see whether my trained model could also accurately predict images from the Kaggle data set.  In order to do this, I applied the same transformations to each Kaggle image that I had applied to my training data - background subtraction and binary thresholding. This gave them a similar "look" that my model was familiar with.
+
+#### Results
+
+The model's performance exceeded my expectations. It classified nearly every gesture in the test set correctly, ending up with a 98% F1 score, as well as 98% precision and accuracy scores. This was great news!
+
+As any well-seasoned researcher knows, though, a model that performs well in the lab but not in real life isn't worth much. Having experienced the same failure with my initial model, I was cautiously optimistic that this model would perform well on gestures in real time.
+
+#### Smart Home Integration
+
+Before testing my model, I wanted to add another twist. I've always been a bit of a smart home devotee, and my vision had always been to control my Sonos and Philips Hue lights using just my gestures. To easily access the Philips Hue and Sonos APIs, I used the phue and SoCo libraries, respectively. They were both extremely simple to use, as seen below:
+
+```python
+# Philips Hue Settings
+bridge_ip = '192.168.0.103'
+b = Bridge(bridge_ip)
+on_command =  {'transitiontime' : 0, 'on' : True, 'bri' : 254}
+off_command =  {'transitiontime' : 0, 'on' : False, 'bri' : 254}
+
+# Turn lights on
+b.set_light(6, off_command)
+
+#Turn lights off
+b.set_light(6, on_command)
+```
+
+Using SoCo to control Sonos via the web API was arguably even easier:
+
+```python
+sonos_ip = '192.168.0.104'
+sonos = SoCo(sonos_ip)
+
+# Play
+sonos.play()
+
+#Pause
+sonos.pause()
+```
+
+I then created bindings for different gestures to do different things with my smart home devices:
+
+```python
+# boolean set earlier to turn smart home functionality on/off
+if smart_home:
+    if prediction == 'Palm':
+        try:
+            action = "Lights on, music on"
+            sonos.play()
+        # turn off smart home actions if devices are not responding    
+        except ConnectionError:
+            smart_home = False
+            pass
+    # etc. etc.
+```
+
+When I finally tested my model in real time, I was extremely pleased with the results. My model was accurately predcting my gestures the vast majority of the time. See the video below for a demo:
+
+[Gestures Demo Video](https://www.youtube.com/watch?v=CsMcAxD7FxM&feature=youtu.be&vq=720)
+
+I hope you enjoy the results!
