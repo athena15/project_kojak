@@ -1,54 +1,46 @@
+#! /usr/bin/env python3
+
 import cv2
 import numpy as np
 import copy
 import math
-import time
-import datetime
-from keras.preprocessing import image as image_utils
+from keras.models import load_model
 from phue import Bridge
 from soco import SoCo
 
 # General Settings
 prediction = ''
 action = ''
-img_counter = 9999
+score = 0
+img_counter = 500
 selected_gesture = 'peace'
+
+# Change these to turn on the ability to save images, use smart home abilities
 save_images = False
 smart_home = False
 
-# Smart Home Settings
-b = Bridge('192.168.0.103')
+# Philips Hue Settings
+bridge_ip = '192.168.0.103'
+b = Bridge(bridge_ip)
 on_command =  {'transitiontime' : 0, 'on' : True, 'bri' : 254}
 off_command =  {'transitiontime' : 0, 'on' : False, 'bri' : 254}
 
+# Sonos Settings
 sonos_ip = '192.168.0.104'
 sonos = SoCo(sonos_ip)
-
-def predict_rgb_image(img):
-	result = gesture_names[model.predict_classes(img)[0]]
-	print(result)
-	return (result)
-
-from keras.models import load_model
-# model = load_model('/Users/brenner/project_kojak/models/new_new_new.h5')
-# model = load_model('/Users/brenner/project_kojak/models/vgg_new_model.h5')
-# model = load_model('/Users/brenner/project_kojak/drawing_VGG.h5')
-# model = load_model('/Users/brenner/project_kojak/models/best_model')
-model = load_model('/Users/brenner/project_kojak/models/VGG_cross_validated.h5')
-
-# gesture_names = {0: 'C',
-# 				 1: 'Fist',
-# 				 2: 'L',
-# 				 3: 'Okay',
-# 				 4: 'Palm',
-# 				 5: 'Peace'}
 
 gesture_names = {0: 'Fist',
 				 1: 'L',
 				 2: 'Okay',
 				 3: 'Palm',
 				 4: 'Peace'}
-score = 0
+
+def predict_rgb_image(img):
+	result = gesture_names[model.predict_classes(img)[0]]
+	print(result)
+	return (result)
+
+model = load_model('/Users/brenner/project_kojak/models/VGG_cross_validated.h5')
 
 def predict_rgb_image_vgg(image):
 	image = np.array(image, dtype='float32')
@@ -62,7 +54,7 @@ def predict_rgb_image_vgg(image):
 	print(result)
 	return result, score
 
-###STOP
+
 
 # parameters
 cap_region_x_begin=0.5  # start point/total width
@@ -91,39 +83,16 @@ def removeBG(frame):
 	return res
 
 
-def calculateFingers(res,drawing):
-	hull = cv2.convexHull(res, returnPoints=False)
-	if len(hull) > 3:
-		defects = cv2.convexityDefects(res, hull)
-		if type(defects) != type(None):  # avoid crashing.   (BUG not found)
-
-			cnt = 0
-			for i in range(defects.shape[0]):  # calculate the angle
-				s, e, f, d = defects[i][0]
-				start = tuple(res[s][0])
-				end = tuple(res[e][0])
-				far = tuple(res[f][0])
-				a = math.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
-				b = math.sqrt((far[0] - start[0]) ** 2 + (far[1] - start[1]) ** 2)
-				c = math.sqrt((end[0] - far[0]) ** 2 + (end[1] - far[1]) ** 2)
-				angle = math.acos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c))  # cosine theorem
-				if angle <= math.pi / 2:  # angle less than 90 degree, treat as fingers
-					cnt += 1
-					cv2.circle(drawing, far, 8, [211, 84, 0], -1)
-			return True, cnt
-	return False, 0
-
-
 # Camera
 camera = cv2.VideoCapture(0)
 camera.set(10,200)
-cv2.namedWindow('trackbar')
-cv2.createTrackbar('trh1', 'trackbar', threshold, 100, printThreshold)
+# cv2.namedWindow('trackbar')
+# cv2.createTrackbar('trh1', 'trackbar', threshold, 100, printThreshold)
 
 
 while camera.isOpened():
 	ret, frame = camera.read()
-	threshold = cv2.getTrackbarPos('trh1', 'trackbar')
+	# threshold = cv2.getTrackbarPos('trh1', 'trackbar')
 	frame = cv2.bilateralFilter(frame, 5, 50, 100)  # smoothing filter
 	frame = cv2.flip(frame, 1)  # flip the frame horizontally
 	cv2.rectangle(frame, (int(cap_region_x_begin * frame.shape[1]), 0),
@@ -131,7 +100,7 @@ while camera.isOpened():
 
 	# Add prediction text overlay
 	# cv2.putText(frame, f"Prediction: {prediction}" , (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0))  # Draw the text
-	cv2.resize(frame, (800, 600))
+	# cv2.resize(frame, (800, 600))
 	cv2.imshow('original', frame)
 
 
@@ -149,7 +118,8 @@ while camera.isOpened():
 		# ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY)
 		ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-		cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY
+		# Tried these filters, they are not as good
+		# cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY
 
 		cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
 		cv2.putText(thresh, f"Action: {action}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))  # Draw the text
@@ -176,12 +146,6 @@ while camera.isOpened():
 			cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
 			cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
-			isFinishCal,cnt = calculateFingers(res,drawing)
-			if triggerSwitch is True:
-				if isFinishCal is True and cnt <= 2:
-					print (cnt)
-					#app('System Events').keystroke(' ')  # simulate pressing blank space
-
 
 		cv2.imshow('output', drawing)
 
@@ -200,6 +164,9 @@ while camera.isOpened():
 		print ('!!!Reset BackGround!!!')
 	elif k == 32:
 		# SPACE pressed
+		cv2.imshow('original', frame)
+		# cv2.destroyWindow('original')
+
 		target = np.stack((thresh,)*3, axis=-1)
 		target = cv2.resize(target, (224, 224))
 		target = target.reshape(1, 224, 224, 3)
@@ -207,25 +174,44 @@ while camera.isOpened():
 
 		if smart_home:
 			if prediction == 'Palm':
-				action = "Lights on, music on"
-				b.set_light(6, on_command)
-				sonos.play()
+				try:
+					action = "Lights on, music on"
+					b.set_light(6, on_command)
+					sonos.play()
+				except ConnectionError:
+					pass
 
 			elif prediction == 'Fist':
-				action = 'Lights off, music off'
-				b.set_light(6, off_command)
-				sonos.pause()
+				try:
+					action = 'Lights off, music off'
+					b.set_light(6, off_command)
+					sonos.pause()
+				except ConnectionError:
+					smart_home = False
+					pass
 
 			elif prediction == 'L':
-				action = 'Volume down'
-				sonos.volume -= 15
+				try:
+					action = 'Volume down'
+					sonos.volume -= 15
+				except ConnectionError:
+					smart_home = False
+					pass
 
 			elif prediction == 'Okay':
-				action = 'Volume up'
-				sonos.volume += 15
+				try:
+					action = 'Volume up'
+					sonos.volume += 15
+				except ConnectionError:
+					smart_home = False
+					pass
 
 			elif prediction == 'Peace':
-				action = ''
+				try:
+					action = ''
+				except ConnectionError:
+					smart_home = False
+					pass
 
 			else:
 				pass
@@ -256,13 +242,9 @@ while camera.isOpened():
 	elif k == ord('t'):
 		print('Tracker turned on.')
 
-
-
 		cap = cv2.VideoCapture(0)
 		# take first frame of the video
 		ret, frame = cap.read()
-
-		# Read image
 
 		# Select ROI
 		r = cv2.selectROI(frame)
@@ -316,7 +298,3 @@ while camera.isOpened():
 				break
 		cv2.destroyAllWindows()
 		cap.release()
-
-	elif k == ord('n'):
-		triggerSwitch = True
-		print ('!!!Trigger On!!!')
