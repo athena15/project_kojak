@@ -93,5 +93,4 @@ target = target.reshape(1, 224, 224, 3)
 prediction, score = predict_image(target)
 ```
 
-Getting the pipeline connected between the webcam and my model was a big success. I started to think about what would be the ideal image to feed in to my model. One clear obstacle was that it's difficult to separate the area of interest (in our case, a hand) from the background. The approach that I took was one that is familiar to anyone who has played around with Photoshop at all - background subtraction. In essence, if you take a photo of a scene before your hand is in it, you can create a "mask" that will remove everything in the image except the new object.
-
+Getting the pipeline connected between the webcam and my model was a big success. I started to think about what would be the ideal image to feed in to my model. One clear obstacle was that it's difficult to separate the area of interest (in our case, a hand) from the background. The approach that I took was one that is familiar to anyone who has played around with Photoshop at all - background subtraction. It's a beautiful thing! In essence, if you take a photo of a scene before your hand is in it, you can create a "mask" that will remove everything in the image except the new object.
