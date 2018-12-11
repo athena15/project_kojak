@@ -131,14 +131,15 @@ Before testing my model, I wanted to add another twist. I've always been a bit o
 # Philips Hue Settings
 bridge_ip = '192.168.0.103'
 b = Bridge(bridge_ip)
+
 on_command =  {'transitiontime' : 0, 'on' : True, 'bri' : 254}
 off_command =  {'transitiontime' : 0, 'on' : False, 'bri' : 254}
 
 # Turn lights on
-b.set_light(6, off_command)
+b.set_light(6, on_command)
 
 #Turn lights off
-b.set_light(6, on_command)
+b.set_light(6, off_command)
 ```
 
 Using SoCo to control Sonos via the web API was arguably even easier:
