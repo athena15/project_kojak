@@ -8,7 +8,7 @@ I've been curious about gesture detection for a long time. I remember when the f
 
 I was excited about this idea and moved quickly to implement it, like I'd been shot out of a cannon. I started working with a hand gesture recognition database on [Kaggle.com](https://www.kaggle.com/benenharrington/hand-gesture-recognition-database-with-cnn), and exploring the data. It consists of 20,000 labeled hand gestures, like the ones found below.
 
-![Hand images](https://drive.google.com/file/d/1xfmUJdh2lJejUjgA1E-SJgl8T-Zp_uB4/view?usp=sharing)
+![Hand images](https://github.com/athena15/project_kojak/raw/master/deliverables/hand_images.jpg)
 
 The data are organized into 10 folders, each of which represents a single person's images. Each person then took 200 images for each gesture. This requires walking through the file tree, recording which person and gesture is represented in the image. I then read in the images like so:
 
