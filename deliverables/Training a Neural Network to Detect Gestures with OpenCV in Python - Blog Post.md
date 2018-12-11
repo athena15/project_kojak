@@ -107,7 +107,7 @@ Now that I could accurately detect my hand in images, I decided to try something
 
 I chose to focus on 5 gestures:
 
-![5 hand gestures](Background Masking.jpg)
+![5 hand gestures](https://github.com/athena15/project_kojak/raw/master/deliverables/Background%20Masking.png)
 
 I strategically chose 4 gestures that were also included in the Kaggle data set, so I could cross-validate my model against those images later. I also added the peace sign, although that gesture did not have an analogue in the Kaggle data set.
 
