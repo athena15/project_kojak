@@ -7,7 +7,6 @@ import numpy as np
 from keras.models import load_model
 from phue import Bridge
 from soco import SoCo
-import pygame
 import time
 
 # General Settings
@@ -18,23 +17,6 @@ score = 0
 selected_gesture = 'peace'
 img_counter = 500
 
-
-# pygame.event.wait()
-
-class Volume(object):
-	def __init__(self):
-		self.level = .5
-
-	def increase(self, amount):
-		self.level += amount
-		print(f'New level is: {self.level}')
-
-	def decrease(self, amount):
-		self.level -= amount
-		print(f'New level is: {self.level}')
-
-vol = Volume()
-
 # Turn on/off the ability to save images, or control Philips Hue/Sonos
 save_images = False
 smart_home = False
@@ -42,20 +24,20 @@ smart_home = False
 # Philips Hue Settings
 bridge_ip = '192.168.0.103'
 b = Bridge(bridge_ip)
-on_command =  {'transitiontime' : 0, 'on' : True, 'bri' : 254}
-off_command =  {'transitiontime' : 0, 'on' : False, 'bri' : 254}
+on_command = {'transitiontime' : 0, 'on' : True, 'bri' : 254}
+off_command = {'transitiontime' : 0, 'on' : False, 'bri' : 254}
 
 # Sonos Settings
 sonos_ip = '192.168.0.104'
 sonos = SoCo(sonos_ip)
+
+model = load_model('./models/VGG_cross_validated.h5')
 
 gesture_names = {0: 'Fist',
 				 1: 'L',
 				 2: 'Okay',
 				 3: 'Palm',
 				 4: 'Peace'}
-
-model = load_model('/Users/brenner/project_kojak/models/VGG_cross_validated.h5')
 
 def predict_rgb_image(img):
 	result = gesture_names[model.predict_classes(img)[0]]
@@ -66,12 +48,9 @@ def predict_rgb_image_vgg(image):
 	image = np.array(image, dtype='float32')
 	image /= 255
 	pred_array = model.predict(image)
-	print(f'pred_array: {pred_array}')
 	result = gesture_names[np.argmax(pred_array)]
-	print(f'Result: {result}')
-	print(max(pred_array[0]))
 	score = float("%0.2f" % (max(pred_array[0]) * 100))
-	print(result)
+	print(f'Result: {result}')
 	return result, score
 
 
@@ -85,7 +64,6 @@ learningRate = 0
 
 # variableslt
 isBgCaptured = 0   # bool, whether the background captured
-triggerSwitch = False  # if true, keyboard simulator works
 
 
 def removeBG(frame):
@@ -98,7 +76,7 @@ def removeBG(frame):
 
 # Camera
 camera = cv2.VideoCapture(0)
-camera.set(10,200)
+camera.set(10, 200)
 
 while camera.isOpened():
 	ret, frame = camera.read()
@@ -115,7 +93,6 @@ while camera.isOpened():
 		img = removeBG(frame)
 		img = img[0:int(cap_region_y_end * frame.shape[0]),
 					int(cap_region_x_begin * frame.shape[1]):frame.shape[1]]  # clip the ROI
-		# cv2.imshow('mask', img)
 
 		# convert the image into binary image
 		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -125,16 +102,13 @@ while camera.isOpened():
 		ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
 		# Draw the text
-		cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
-		            (255, 255, 255))
-		cv2.putText(thresh, f"Action: {action}", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
-		            (255, 255, 255))  # Draw the text
-		cv2.imshow('ori', thresh)
-
+		cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))
+		cv2.putText(thresh, f"Action: {action}", (50, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255))  # Draw the text
+		cv2.imshow('thresholded image', thresh)
 
 		# get the contours
 		thresh1 = copy.deepcopy(thresh)
-		_,contours, hierarchy = cv2.findContours(thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+		_, contours, hierarchy = cv2.findContours(thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 		length = len(contours)
 		maxArea = -1
 		if length > 0:
@@ -152,7 +126,7 @@ while camera.isOpened():
 			cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
 
-		cv2.imshow('output', drawing)
+		cv2.imshow('outlined image', drawing)
 
 	# Keyboard OP
 	k = cv2.waitKey(10)
@@ -162,19 +136,11 @@ while camera.isOpened():
 		bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
 
 		isBgCaptured = 1
-		print( 'Background captured')
-		# pygame.init()
-		# pygame.mixer.init()
-		# pygame.mixer.music.load('/Users/brenner/1-05 Virtual Insanity.mp3')
-		# pygame.mixer.music.set_volume(vol.level)
-		# pygame.mixer.music.play()
-		# pygame.mixer.music.set_pos(50)
-		# pygame.mixer.music.pause()
+		print('Background captured')
 
 	elif k == ord('r'):  # press 'r' to reset the background
 		time.sleep(1)
 		bgModel = None
-		triggerSwitch = False
 		isBgCaptured = 0
 		print ('Reset background')
 	elif k == 32:
@@ -235,15 +201,15 @@ while camera.isOpened():
 				pass
 
 		if save_images:
-			img_name = f"/Users/brenner/project_kojak/frames/drawings/drawing_{selected_gesture}_{img_counter}.jpg".format(img_counter)
+			img_name = f"./frames/drawings/drawing_{selected_gesture}_{img_counter}.jpg".format(img_counter)
 			cv2.imwrite(img_name, drawing)
 			print("{} written".format(img_name))
 
-			img_name2 = f"/Users/brenner/project_kojak/frames/silhouettes/{selected_gesture}_{img_counter}.jpg".format(img_counter)
+			img_name2 = f"./frames/silhouettes/{selected_gesture}_{img_counter}.jpg".format(img_counter)
 			cv2.imwrite(img_name2, thresh)
 			print("{} written".format(img_name2))
 
-			img_name3 = f"/Users/brenner/project_kojak/frames/masks/mask_{selected_gesture}_{img_counter}.jpg".format(img_counter)
+			img_name3 = f".frames/masks/mask_{selected_gesture}_{img_counter}.jpg".format(img_counter)
 			cv2.imwrite(img_name3, img)
 			print("{} written".format(img_name3))
 
