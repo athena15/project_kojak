@@ -37,7 +37,7 @@ vol = Volume()
 
 # Turn on/off the ability to save images, or control Philips Hue/Sonos
 save_images = False
-smart_home = True
+smart_home = False
 
 # Philips Hue Settings
 bridge_ip = '192.168.0.103'
@@ -120,11 +120,10 @@ while camera.isOpened():
 		# convert the image into binary image
 		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 		blur = cv2.GaussianBlur(gray, (blurValue, blurValue), 0)
+
 		# cv2.imshow('blur', blur)
 		ret, thresh = cv2.threshold(blur, threshold, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-		# Add prediction and action text to thresholded image
-		# cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))
-		# cv2.putText(thresh, f"Action: {action}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255))  # Draw the text
+
 		# Draw the text
 		cv2.putText(thresh, f"Prediction: {prediction} ({score}%)", (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1,
 		            (255, 255, 255))
@@ -161,17 +160,16 @@ while camera.isOpened():
 		break
 	elif k == ord('b'):  # press 'b' to capture the background
 		bgModel = cv2.createBackgroundSubtractorMOG2(0, bgSubThreshold)
-		b.set_light(6, on_command)
-		time.sleep(2)
+
 		isBgCaptured = 1
 		print( 'Background captured')
-		pygame.init()
-		pygame.mixer.init()
-		pygame.mixer.music.load('/Users/brenner/1-05 Virtual Insanity.mp3')
-		pygame.mixer.music.set_volume(vol.level)
-		pygame.mixer.music.play()
-		pygame.mixer.music.set_pos(50)
-		pygame.mixer.music.pause()
+		# pygame.init()
+		# pygame.mixer.init()
+		# pygame.mixer.music.load('/Users/brenner/1-05 Virtual Insanity.mp3')
+		# pygame.mixer.music.set_volume(vol.level)
+		# pygame.mixer.music.play()
+		# pygame.mixer.music.set_pos(50)
+		# pygame.mixer.music.pause()
 
 	elif k == ord('r'):  # press 'r' to reset the background
 		time.sleep(1)
@@ -192,10 +190,8 @@ while camera.isOpened():
 			if prediction == 'Palm':
 				try:
 					action = "Lights on, music on"
+					sonos.play()
 
-					# sonos.play()
-					pygame.mixer.music.unpause()
-				# Turn off smart home actions if devices are not responding
 				except ConnectionError:
 					smart_home = False
 					pass
@@ -204,8 +200,8 @@ while camera.isOpened():
 				try:
 					action = 'Lights off, music off'
 					b.set_light(6, off_command)
-					# sonos.pause()
-					pygame.mixer.music.pause()
+					sonos.pause()
+
 				except ConnectionError:
 					smart_home = False
 					pass
@@ -213,9 +209,8 @@ while camera.isOpened():
 			elif prediction == 'L':
 				try:
 					action = 'Volume down'
-					# sonos.volume -= 15
-					vol.decrease(0.2)
-					pygame.mixer.music.set_volume(vol.level)
+					sonos.volume -= 15
+
 				except ConnectionError:
 					smart_home = False
 					pass
@@ -223,9 +218,8 @@ while camera.isOpened():
 			elif prediction == 'Okay':
 				try:
 					action = 'Volume up'
-					# sonos.volume += 15
-					vol.increase(0.2)
-					pygame.mixer.music.set_volume(vol.level)
+					sonos.volume += 15
+
 				except ConnectionError:
 					smart_home = False
 					pass
@@ -269,7 +263,12 @@ while camera.isOpened():
 		imCrop = frame[int(r[1]):int(r[1] + r[3]), int(r[0]):int(r[0] + r[2])]
 
 		# setup initial location of window
-		r, h, c, w = 250, 400, 400, 400
+		cap_region_x_begin = 0.5  # start point/total width
+		cap_region_y_end = 0.8  # start point/total width
+		bbox = cv2.rectangle(frame, (int(cap_region_x_begin * frame.shape[1]), 0),
+		                     (frame.shape[1], int(cap_region_y_end * frame.shape[0])), (255, 0, 0), 2)
+
+		# r, h, c, w = 250, 400, 400, 400
 		track_window = (c, r, w, h)
 		# set up the ROI for tracking
 		roi = imCrop
