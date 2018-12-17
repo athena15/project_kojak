@@ -2,7 +2,9 @@
 
 #### How I built Microsoft Kinect functionality with just a webcam and a dream.
 
-*You can find the* [*code in the Github project repository here*](https://github.com/athena15/project_kojak)*, or view the* [*final presentation slides here*](https://docs.google.com/presentation/d/1UY3uWE5sUjKRfV7u9DXqY0Cwk6sDNSalZoI2hbSD1o8/edit?usp=sharing)*.*
+*You can view the* [*final presentation slides here*](https://docs.google.com/presentation/d/1UY3uWE5sUjKRfV7u9DXqY0Cwk6sDNSalZoI2hbSD1o8/edit?usp=sharing)*.*
+
+![img](https://cdn-images-1.medium.com/max/800/1*-iAcmPxJ6CS6kC-iQxykGA.jpeg)
 
 #### Inspiration
 
@@ -16,11 +18,14 @@ I’ve been curious about gesture detection for a long time. I remember when the
 
 I was excited about this idea and moved quickly to implement it, like I’d been shot out of a cannon. I started working with a hand gesture recognition database on [Kaggle.com](https://www.kaggle.com/benenharrington/hand-gesture-recognition-database-with-cnn), and exploring the data. It consists of 20,000 labeled hand gestures, like the ones found below.
 
-![img](https://cdn-images-1.medium.com/max/600/0*vWF9lOTk_fbi4xyA.jpg)Odd images, but labeled and plentiful.
+![img](https://cdn-images-1.medium.com/max/600/0*vWF9lOTk_fbi4xyA.jpg)
 
 Once I read the images in, the first problem I ran into was that my images were black & white. This means the NumPy arrays have only one channel, instead of three (i.e., the shape of each array is (224, 224, 1)). As a result, I was unable to use these images with the VGG-16 pre-trained model, as that model requires an RGB, 3-channel image. This was solved by using np.stack on the list of images, X_data:
 
-<script src="https://gist.github.com/athena15/7eb7e816bd426a448ca6149aee3b7f50.js"></script>
+```python
+X_data = np.array(X_data, dtype = 'float32')
+X_data = np.stack((X_data,) * 3, axis=-1)
+```
 
 Once I got through that hurdle, I set about building a model, using a train-test split that *completely held out* photos from 2 of the 10 individuals in them. After re-running the model built on the VGG-16 architecture, my model achieved an F1 score of 0.74 overall. This was quite good, given that random guessing over 10 classes would result in only 10% accuracy, on average.
 
@@ -38,11 +43,43 @@ I decided to pivot and try something new. It seemed to me that there was a clear
 
 I had been working with OpenCV, an open source computer vision library, and I needed an engineer a solution that would grab an image from the screen, then resize and transform the image into a NumPy array that my model could understand. The methods I used to transform my data are as follows:
 
-<script src="https://gist.github.com/athena15/b0ef8a46b38d92b0d1ad59a3dce18440.js"></script>
+```python
+from keras import load_model
+model = load_model(path) # open saved model/weights from .h5 file
+
+def predict_image(image):
+    image = np.array(image, dtype='float32')
+    image /= 255
+    pred_array = model.predict(image)
+
+    # model.predict() returns an array of probabilities - 
+    # np.argmax grabs the index of the highest probability.
+    result = gesture_names[np.argmax(pred_array)]
+    
+    # A bit of magic here - the score is a float, but I wanted to
+    # display just 2 digits beyond the decimal point.
+    score = float("%0.2f" % (max(pred_array[0]) * 100))
+    print(f'Result: {result}, Score: {score}')
+    return result, score
+```
 
 In a nutshell, once you get the camera up and running you can grab the frame, transform it, and get a prediction from your model:
 
-<script src="https://gist.github.com/athena15/4da6384ea82c0e49b80cd65e78c1f9bb.js"></script>
+```python
+#starts the webcam, uses it as video source
+camera = cv2.VideoCapture(0) #uses webcam for video
+
+while camera.isOpened():
+    #ret returns True if camera is running, frame grabs each frame of the video feed
+    ret, frame = camera.read()
+    
+    k = cv2.waitKey(10)
+    if k == 32: # if spacebar pressed
+        frame = np.stack((frame,)*3, axis=-1)
+        frame = cv2.resize(frame, (224, 224))
+        frame = frame.reshape(1, 224, 224, 3)
+        prediction, score = predict_image(frame)
+```
 
 Getting the pipeline connected between the webcam and my model was a big success. I started to think about what would be the ideal image to feed in to my model. One clear obstacle was that it’s difficult to separate the area of interest (in our case, a hand) from the background.
 
@@ -86,18 +123,51 @@ As any well-seasoned researcher knows, though, a model that performs well in the
 
 Before testing my model, I wanted to add another twist. I’ve always been a bit of a smart home enthusiast, and my vision had always been to control my Sonos and Philips Hue lights using just my gestures. To easily access the Philips Hue and Sonos APIs, I used the [phue](https://github.com/studioimaginaire/phue) and [SoCo](https://github.com/SoCo/SoCo) libraries, respectively. They were both extremely simple to use, as seen below:
 
-<script src="https://gist.github.com/athena15/c945caeef3b0533c1bd2a0ab4d894fb6.js"></script>
+```python
+# Philips Hue Settings
+bridge_ip = '192.168.0.103'
+b = Bridge(bridge_ip)
+
+on_command =  {'transitiontime' : 0, 'on' : True, 'bri' : 254}
+off_command =  {'transitiontime' : 0, 'on' : False, 'bri' : 254}
+
+# Turn lights on
+b.set_light(6, on_command)
+
+#Turn lights off
+b.set_light(6, off_command)
+```
 
 Using SoCo to control Sonos via the web API was arguably even easier:
 
-<script src="https://gist.github.com/athena15/e4008252cdf17a49858701260fdacd0f.js"></script>
+```python
+sonos_ip = '192.168.0.104'
+sonos = SoCo(sonos_ip)
+
+# Play
+sonos.play()
+
+#Pause
+sonos.pause()
+```
 
 I then created bindings for different gestures to do different things with my smart home devices:
 
-<script src="https://gist.github.com/athena15/8f9eac6a4cac7b9113c26cb182d3cdb2.js"></script>
+```python
+if smart_home:
+    if prediction == 'Palm':
+        try:
+            action = "Lights on, music on"
+            sonos.play()
+        # turn off smart home actions if devices are not responding    
+        except ConnectionError:
+            smart_home = False
+            pass
+    # etc. etc.
+```
 
 When I finally tested my model in real time, I was extremely pleased with the results. My model was accurately predicting my gestures the vast majority of the time, and I was able to use those gestures to control the lights and music. See the video below for a demo:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/kvyIaGgdwio" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-I hope you enjoyed the results! Thanks for reading. You can also [find me on LinkedIn here](http://linkedin.com/in/brennerheintz), and [email me here](mailto:brenner.heintz@gmail.com).
+I hope you enjoyed the results! Thanks for reading. Give me a clap on [Medium](https://medium.com/p/e09b0a12bdf1) if you enjoyed the post. You can also [find me on LinkedIn here](http://linkedin.com/in/brennerheintz), and [email me here](mailto:brenner.heintz@gmail.com).
