@@ -168,6 +168,6 @@ if smart_home:
 
 When I finally tested my model in real time, I was extremely pleased with the results. My model was accurately predicting my gestures the vast majority of the time, and I was able to use those gestures to control the lights and music. See the video below for a demo:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/kvyIaGgdwio" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[Click here for the video!](https://www.youtube.com/embed/kvyIaGgdwio)
 
 I hope you enjoyed the results! Thanks for reading. Give me a clap on [Medium](https://medium.com/p/e09b0a12bdf1) if you enjoyed the post. You can also [find me on LinkedIn here](http://linkedin.com/in/brennerheintz), and [email me here](mailto:brenner.heintz@gmail.com).
