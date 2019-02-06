@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# PyCharm files
+.DS_Store
+.idea/
+
 # C extensions
 *.so
 
