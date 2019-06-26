@@ -8,6 +8,7 @@ from phue import Bridge
 from soco import SoCo
 import pygame
 import time
+import os
 
 # General Settings
 prediction = ''
@@ -53,7 +54,7 @@ gesture_names = {0: 'Fist',
                  3: 'Palm',
                  4: 'Peace'}
 
-model = load_model('/Users/brenner/project_kojak/models/VGG_cross_validated.h5')
+model = load_model(os.path.dirname(os.path.realpath(__file__)) + '/models/VGG_cross_validated.h5')
 
 
 def predict_rgb_image(img):
