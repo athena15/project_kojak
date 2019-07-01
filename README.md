@@ -2,6 +2,8 @@
 
 #### How I built Microsoft Kinect functionality with just a webcam and a dream.
 
+*Please note: this repository is no longer actively maintained.*
+
 *You can view the* [*final presentation slides here*](https://docs.google.com/presentation/d/1UY3uWE5sUjKRfV7u9DXqY0Cwk6sDNSalZoI2hbSD1o8/edit?usp=sharing)*.*
 
 ![img](https://cdn-images-1.medium.com/max/800/1*-iAcmPxJ6CS6kC-iQxykGA.jpeg)
@@ -162,7 +164,6 @@ if smart_home:
         # turn off smart home actions if devices are not responding    
         except ConnectionError:
             smart_home = False
-            pass
     # etc. etc.
 ```
 
