@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 
 import copy
 import cv2
@@ -13,39 +12,8 @@ import time
 prediction = ''
 action = ''
 score = 0
-img_counter = 500
+img_counter = 0
 
-
-# pygame.event.wait()
-
-class Volume(object):
-    def __init__(self):
-        self.level = .5
-
-    def increase(self, amount):
-        self.level += amount
-        print(f'New level is: {self.level}')
-
-    def decrease(self, amount):
-        self.level -= amount
-        print(f'New level is: {self.level}')
-
-
-vol = Volume()
-
-# Turn on/off the ability to save images, or control Philips Hue/Sonos
-save_images, selected_gesture = False, 'peace'
-smart_home = True
-
-# Philips Hue Settings
-bridge_ip = '192.168.0.103'
-b = Bridge(bridge_ip)
-on_command = {'transitiontime': 0, 'on': True, 'bri': 254}
-off_command = {'transitiontime': 0, 'on': False, 'bri': 254}
-
-# Sonos Settings
-sonos_ip = '192.168.0.104'
-sonos = SoCo(sonos_ip)
 
 gesture_names = {0: 'Fist',
                  1: 'L',
@@ -53,7 +21,7 @@ gesture_names = {0: 'Fist',
                  3: 'Palm',
                  4: 'Peace'}
 
-model = load_model('/Users/brenner/project_kojak/models/VGG_cross_validated.h5')
+model = load_model('./models/VGG_cross_validated.h5')
 
 
 def predict_rgb_image(img):
@@ -162,13 +130,6 @@ while camera.isOpened():
         time.sleep(2)
         isBgCaptured = 1
         print('Background captured')
-        pygame.init()
-        pygame.mixer.init()
-        pygame.mixer.music.load('/Users/brenner/1-05 Virtual Insanity.mp3')
-        pygame.mixer.music.set_volume(vol.level)
-        pygame.mixer.music.play()
-        pygame.mixer.music.set_pos(50)
-        pygame.mixer.music.pause()
 
     elif k == ord('r'):  # press 'r' to reset the background
         time.sleep(1)
@@ -187,53 +148,15 @@ while camera.isOpened():
 
         if smart_home:
             if prediction == 'Palm':
-                try:
-                    action = "Lights on, music on"
-
-                    # sonos.play()
-                    pygame.mixer.music.unpause()
-                # Turn off smart home actions if devices are not responding
-                except ConnectionError:
-                    smart_home = False
-                    pass
-
+                print('Palm')
             elif prediction == 'Fist':
-                try:
-                    action = 'Lights off, music off'
-                    b.set_light(6, off_command)
-                    # sonos.pause()
-                    pygame.mixer.music.pause()
-                except ConnectionError:
-                    smart_home = False
-                    pass
-
+                print('Fist')
             elif prediction == 'L':
-                try:
-                    action = 'Volume down'
-                    # sonos.volume -= 15
-                    vol.decrease(0.2)
-                    pygame.mixer.music.set_volume(vol.level)
-                except ConnectionError:
-                    smart_home = False
-                    pass
-
+                print('L')
             elif prediction == 'Okay':
-                try:
-                    action = 'Volume up'
-                    # sonos.volume += 15
-                    vol.increase(0.2)
-                    pygame.mixer.music.set_volume(vol.level)
-                except ConnectionError:
-                    smart_home = False
-                    pass
-
+                print('Okay')
             elif prediction == 'Peace':
-                try:
-                    action = ''
-                except ConnectionError:
-                    smart_home = False
-                    pass
-
+                print('Palm')
             else:
                 pass
 
@@ -243,7 +166,7 @@ while camera.isOpened():
             cv2.imwrite(img_name, drawing)
             print("{} written".format(img_name))
 
-            img_name2 = f"./frames/silhouettes/{selected_gesture}_{img_counter}.jpg".format(
+            img_name2 = f"./frames/myimages/{selected_gesture}_{img_counter}.jpg".format(
                 img_counter)
             cv2.imwrite(img_name2, thresh)
             print("{} written".format(img_name2))
@@ -252,7 +175,7 @@ while camera.isOpened():
                 img_counter)
             cv2.imwrite(img_name3, img)
             print("{} written".format(img_name3))
-
+            
             img_counter += 1
 
     elif k == ord('t'):
