@@ -33,12 +33,13 @@ def predict_rgb_image_vgg(image):
     image = np.array(image, dtype='float32')
     image /= 255
     pred_array = model.predict(image)
-    print(f'pred_array: {pred_array}')
+    #print(f'pred_array: {pred_array}')
+    #print("=================================================")
     result = gesture_names[np.argmax(pred_array)]
-    print(f'Result: {result}')
-    print(max(pred_array[0]))
+    #print(f'Result: {result}')
+    #print(max(pred_array[0]))
+    
     score = float("%0.2f" % (max(pred_array[0]) * 100))
-    print(result)
     return result, score
 
 
@@ -47,13 +48,13 @@ cap_region_x_begin = 0.5  # start point/total width
 cap_region_y_end = 0.8  # start point/total width
 threshold = 60  # binary threshold
 blurValue = 41  # GaussianBlur parameter
-bgSubThreshold = 50
+bgSubThreshold = 80
 learningRate = 0
 
 # variableslt
 isBgCaptured = 0  # bool, whether the background captured
 triggerSwitch = False  # if true, keyboard simulator works
-
+isPrediction = 0
 
 def remove_background(frame):
     fgmask = bgModel.apply(frame, learningRate=learningRate)
@@ -66,6 +67,7 @@ def remove_background(frame):
 # Camera
 camera = cv2.VideoCapture(0)
 camera.set(10, 200)
+
 
 while camera.isOpened():
     ret, frame = camera.read()
@@ -119,7 +121,10 @@ while camera.isOpened():
             cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
             cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
-        cv2.moveWindow('output', 40,30)  # Move it to (40,30)
+        isPrediction = 1
+
+        cv2.namedWindow('output', cv2.WINDOW_NORMAL)
+        cv2.moveWindow('output', 40, 30)  # Move it to (40,30)
         cv2.imshow('output', drawing)
 
     # Keyboard OP
@@ -137,25 +142,29 @@ while camera.isOpened():
         bgModel = None
         triggerSwitch = False
         isBgCaptured = 0
+        isPrediction = 0
         print('Reset background')
 
-    elif k == 32:
-        # If space bar pressed
+    if isPrediction:
         cv2.imshow('original', frame)
         # copies 1 channel BW image to all 3 RGB channels
         target = np.stack((thresh,) * 3, axis=-1)
         target = cv2.resize(target, (224, 224))
         target = target.reshape(1, 224, 224, 3)
         prediction, score = predict_rgb_image_vgg(target)
-        if prediction == 'Palm':
-            print('Palm')
-        elif prediction == 'Fist':
-            print('Fist')
-        elif prediction == 'L':
-            print('L')
-        elif prediction == 'Okay':
-            print('Okay')
-        elif prediction == 'Peace':
-            print('Peace')
-        else:
-            pass
+        if score > 80:
+            print("=================================================")
+            if prediction == 'Palm':
+                print('Palm')
+            elif prediction == 'Fist':
+                print('Fist')
+            elif prediction == 'L':
+                print('L')
+            elif prediction == 'Okay':
+                print('Okay')
+            elif prediction == 'Peace':
+                print('Peace')
+            else:
+                pass
+            print(score)
+            time.sleep(0.5)
