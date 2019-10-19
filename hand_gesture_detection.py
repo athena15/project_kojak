@@ -1,12 +1,7 @@
-#! /usr/bin/env python3
 
-import copy
 import cv2
 import numpy as np
 from keras.models import load_model
-from phue import Bridge
-from soco import SoCo
-import pygame
 import time
 
 # General Settings
