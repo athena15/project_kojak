@@ -154,15 +154,15 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         if score > 80:
             print("=================================================")
             if prediction == 'Palm':
-                print('Palm')
+                print('Palm', score)
             elif prediction == 'Fist':
-                print('Fist')
+                print('Fist', score)
             elif prediction == 'L':
-                print('L')
+                print('L', score)
             elif prediction == 'Okay':
-                print('Okay')
+                print('Okay', score)
             elif prediction == 'Peace':
-                print('Peace')
+                print('Peace', score)
             else:
                 pass
             print(score)
