@@ -119,6 +119,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
             cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
             cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
+        # Start predicting
         isPrediction = 1
 
         cv2.namedWindow('output', cv2.WINDOW_NORMAL)
