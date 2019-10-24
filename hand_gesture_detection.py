@@ -60,7 +60,6 @@ def remove_background(frame):
     res = cv2.bitwise_and(frame, frame, mask=fgmask)
     return res
 
-
 # Camera
 size = (640, 480)
 camera = PiCamera()
@@ -101,24 +100,24 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         cv2.imshow('ori', thresh)
 
         # get the contours
-        thresh1 = copy.deepcopy(thresh)
-        contours, hierarchy = cv2.findContours(
-            thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        length = len(contours)
-        maxArea = -1
-        if length > 0:
-            for i in range(length):  # find the biggest contour (according to area)
-                temp = contours[i]
-                area = cv2.contourArea(temp)
-                if area > maxArea:
-                    maxArea = area
-                    ci = i
+        # thresh1 = copy.deepcopy(thresh)
+        # contours, hierarchy = cv2.findContours(
+        #     thresh1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # length = len(contours)
+        # maxArea = -1
+        # if length > 0:
+        #     for i in range(length):  # find the biggest contour (according to area)
+        #         temp = contours[i]
+        #         area = cv2.contourArea(temp)
+        #         if area > maxArea:
+        #             maxArea = area
+        #             ci = i
 
-            res = contours[ci]
-            hull = cv2.convexHull(res)
-            drawing = np.zeros(img.shape, np.uint8)
-            cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
-            cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
+        #     res = contours[ci]
+        #     hull = cv2.convexHull(res)
+        #     drawing = np.zeros(img.shape, np.uint8)
+        #     cv2.drawContours(drawing, [res], 0, (0, 255, 0), 2)
+        #     cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 3)
 
         # Start predicting
         isPrediction = 1
