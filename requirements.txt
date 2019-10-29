@@ -13,7 +13,7 @@ numpy==1.16.1
 opencv-python==4.0.0.21
 pandas==0.24.1
 phue==1.1
-Pillow==5.4.1
+Pillow==6.2.0
 pygame==1.9.4
 pyparsing==2.3.1
 python-dateutil==2.8.0
