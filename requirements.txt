@@ -25,5 +25,5 @@ scipy==1.2.0
 six==1.12.0
 soco==0.16
 tables==3.4.4
-urllib3==1.24.2
+urllib3==1.26.5
 xmltodict==0.11.0
